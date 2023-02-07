@@ -1,0 +1,7 @@
+name: Voidstorage
+version: '${project.version}'
+main: dev.favn.voidstorage.Voidstorage
+api-version: 1.19
+authors: [ Favn ]
+description: Voidstorage rewritten
+website: Favn.dev

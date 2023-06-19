@@ -1,0 +1,7 @@
+name: Voidstorage
+version: '${project.version}'
+main: dev.favn.voidstorage.VoidStorage
+api-version: 1.19
+authors: [ Favn ]
+description: Adds items that can store thousands of the same item in a single itemstack
+website: favn.dev

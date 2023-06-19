@@ -1,0 +1,9 @@
+filter:
+  #If set to true, blocks any item listed from being turned to void
+  #If set to false, allows any item listed from being turned to a void
+  useBlacklist: true
+  items:
+    POTION:
+      all: true
+    SPLASH_POTION:
+      all: true

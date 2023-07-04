@@ -31,12 +31,7 @@ public class FormedVoid {
 
         ItemMeta meta = item.getItemMeta();
 
-        String itemName = VoidUtils.displayNameFromMaterial(material);
-        meta.setDisplayName(ChatColor.RESET + itemName + "Void");
-
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.RESET + "Void Storage: " + itemName);
-        lore.add(ChatColor.RESET + "Stored: " + amount + "/" + maxAmount);
+        List<String> lore = createLore(material, amount, meta);
         meta.setLore(lore);
 
         meta.addEnchant(Enchantment.LUCK, 1, false);
@@ -50,8 +45,29 @@ public class FormedVoid {
         return item;
     }
 
+
+    public static void updateVoid(ItemStack voidStorage, int amount){
+        if (amount == -10001) return;
+        ItemMeta meta = voidStorage.getItemMeta();
+        meta.getPersistentDataContainer().set(amountKey, PersistentDataType.INTEGER, amount);
+        List<String> lore = createLore(voidStorage.getType(), amount, meta);
+        meta.setLore(lore);
+
+        voidStorage.setItemMeta(meta);
+    }
+
+    private static List<String> createLore(Material material, int amount, ItemMeta meta) {
+        String itemName = VoidUtils.displayNameFromMaterial(material);
+        meta.setDisplayName(ChatColor.RESET + itemName + "Void");
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.RESET + "Void Storage: " + itemName);
+        lore.add(ChatColor.RESET + "Stored: " + amount + "/" + maxAmount);
+        return lore;
+    }
+
     public static int getAmount(ItemStack storageVoid) {
-        int amount = 0;
+        int amount;
         if (!isItemVoid(storageVoid)) return -10001;
 
         ItemMeta meta = storageVoid.getItemMeta();
@@ -62,16 +78,15 @@ public class FormedVoid {
     }
 
     public static boolean isItemVoid(ItemStack item) {
-        if (item == null) return false;
+        if (item == null || item.getType() == Material.AIR) return false;
 
         try {
             String itemData = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-            if (!Objects.equals(itemData, "normal")) return false;
+            if (Objects.equals(itemData, "normal")) return true;
         } catch (NullPointerException exception) {
-            VoidStorage _plugin = VoidStorage.get_plugin();
-            _plugin.get_plugin().getServer().getConsoleSender().sendMessage(ChatColor.RED + "There was a NullPointerException in isItemVoid method");
+            VoidStorage.get_plugin().getServer().getConsoleSender().sendMessage(ChatColor.RED + "There was a NullPointerException in isItemVoid method");
         }
-        return true;
+        return false;
     }
 
 

@@ -2,17 +2,18 @@ package dev.favn.voidstorage.events;
 
 import dev.favn.voidstorage.VoidStorage;
 import dev.favn.voidstorage.itemfactory.FormedVoid;
-import dev.favn.voidstorage.itemupdater.UpdateVoidStorage;
 import dev.favn.voidstorage.utility.KeyCache;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.BoundingBox;
 
 public class ClickWithVoid implements Listener {
 
@@ -29,93 +30,129 @@ public class ClickWithVoid implements Listener {
         key = _keyCache.getKey("formedvoid_type");
         amountKey = _keyCache.getKey("formedvoid_amount");
         maxKey = _keyCache.getKey("formedvoid_max");
+        this._plugin.getServer().getPluginManager().registerEvents(this, this._plugin);
     }
 
     @EventHandler
-    public static void onClickWithVoid(PlayerInteractEvent e){
-        if (e.getHand() != EquipmentSlot.HAND) return;
+    public static void onClickWithVoid(PlayerInteractEvent e) {
+        ItemStack item = e.getItem();
+        if (item == null) return;
+        if (!FormedVoid.isItemVoid(item)) return;
 
-        ItemStack itemClicked = e.getPlayer().getInventory().getItemInMainHand();
-
-        if (!FormedVoid.isItemVoid(itemClicked)) return;
-
-        if (e.getAction() == Action.LEFT_CLICK_AIR ||
-            e.getAction() == Action.LEFT_CLICK_BLOCK) RemoveFromVoid(itemClicked, e);
-        if (e.getAction() == Action.RIGHT_CLICK_AIR ||
-            e.getAction() == Action.RIGHT_CLICK_BLOCK) AddToVoid(itemClicked, e);
-    }
-    private static void AddToVoid(ItemStack storageVoid, PlayerInteractEvent e){
-        Player p = e.getPlayer();
-        if (p.isSneaking()){
-            int i = getItemAmount(false, p, storageVoid.getType(), e);
-            if (i == -10001) return;
-            ModifyVoid(e, storageVoid, i);
+        Action action = e.getAction();
+        if (action == Action.RIGHT_CLICK_BLOCK) {
+            placeBlock(item, e);
             return;
-        } else {
-            ModifyVoid(e, storageVoid, 64);
         }
-        return;
-    }
 
-    private static void RemoveFromVoid(ItemStack storageVoid, PlayerInteractEvent e){
-        Player p = e.getPlayer();
-        if (p.isSneaking()){
-            int i = getItemAmount(false, p, storageVoid.getType(), e);
-            if (i == -10001) return;
-            ModifyVoid(e, storageVoid, -i);
+        if (action == Action.LEFT_CLICK_AIR ||
+                action == Action.LEFT_CLICK_BLOCK) {
+            removeFromVoid(item, e);
             return;
-        } else {
-            ModifyVoid(e, storageVoid, -64);
         }
-        return;
-    }
-
-    private static void ModifyVoid(PlayerInteractEvent e, ItemStack storageVoid, int amount){
-        int newAmount;
-        int maxAmount = FormedVoid.getMax(storageVoid);
-        newAmount = FormedVoid.getAmount(storageVoid)  + amount;
-        if (newAmount > maxAmount) {
-            //do stuff
-            newAmount = maxAmount;
-
-        }
-        UpdateVoidStorage.updateVoid(storageVoid, newAmount);
-    }
-
-    private static void ModifyInventory(boolean remove, PlayerInteractEvent e, int amount){
-        if (remove) {
-
-        }
-        else {
-
+        if (action == Action.RIGHT_CLICK_AIR) {
+            addToVoid(item, e);
+            return;
         }
     }
 
+    private static void addToVoid(ItemStack storage, PlayerInteractEvent e) {
+        e.setCancelled(true);
+        Player p = e.getPlayer();
 
-    private static int getItemAmount(boolean leftClick, Player p, Material m, PlayerInteractEvent e) {
-        int amount = 0;
+        int storedAmount = storage.getItemMeta().getPersistentDataContainer().get(amountKey, PersistentDataType.INTEGER);
+        int depositedAmount = 0;
+        int total = storedAmount + depositedAmount;
 
-        if (leftClick) {
-            for (ItemStack item : p.getInventory().getContents()) {
-                if (item == null) {
-                    amount += m.getMaxStackSize();
-                    continue;
-                }
-                if (item.getType() == m) {
-                    if (item.getType() == m && FormedVoid.isItemVoid(item)) {
-                        amount += m.getMaxStackSize() - item.getAmount();
-                        continue;
-                    }
-                }
+        for (ItemStack item : p.getInventory().getStorageContents()) {
+            if (item == null || item.getType() != storage.getType() || FormedVoid.isItemVoid(item)) continue;
+
+            if (total + item.getAmount() <= 10000) {
+                depositedAmount += item.getAmount();
+                item.setAmount(0);
+
+                if (!p.isSneaking()) break;
+
+                continue;
             }
-            return amount;
+
+            int overflow = total + item.getAmount() - 10000;
+            depositedAmount += item.getAmount() - overflow;
+            item.setAmount(overflow);
+            break;
         }
 
-        for (ItemStack item : p.getInventory().getContents()) {
-            if (item != null && item.getType() == m && !FormedVoid.isItemVoid(item)) {
-                amount += item.getAmount();
-            }
-        }
-        return amount;
+        FormedVoid.updateVoid(storage, storedAmount + depositedAmount);
     }
+
+    private static void removeFromVoid(ItemStack storage, PlayerInteractEvent e) {
+        e.setCancelled(true);
+        Player p = e.getPlayer();
+        int storedAmount = storage.getItemMeta().getPersistentDataContainer().get(amountKey, PersistentDataType.INTEGER);
+        int newAmount = storedAmount;
+        Material m = storage.getType();
+
+        for (ItemStack item : p.getInventory().getStorageContents()) {
+            if (!(item == null) || FormedVoid.isItemVoid(item)) continue;
+            if (m.getMaxStackSize() > storedAmount) {
+                p.getInventory().addItem(new ItemStack(m, storedAmount));
+                newAmount = 0;
+                break;
+            }
+            if (newAmount - m.getMaxStackSize() < 0) {
+                p.getInventory().addItem(new ItemStack(m, newAmount));
+                newAmount = 0;
+                break;
+            }
+            p.getInventory().addItem((new ItemStack(m, m.getMaxStackSize())));
+            newAmount -= m.getMaxStackSize();
+            if (!p.isSneaking()) {
+                break;
+            }
+            continue;
+        }
+        FormedVoid.updateVoid(storage, newAmount);
+    }
+
+    private static void placeBlock(ItemStack itemClicked, PlayerInteractEvent e) {
+        e.setCancelled(true);
+
+        Player p = e.getPlayer();
+        int amount;
+        int voidAmount = FormedVoid.getAmount(itemClicked);
+        if (voidAmount > 10000 || voidAmount < 0) return;
+        amount = voidAmount;
+
+        Block blockToBePlaced = e.getClickedBlock().getRelative(e.getBlockFace());
+
+        if (blockToBePlaced.getType() != Material.AIR) {
+            addToVoid(itemClicked, e);
+            return;
+        }
+
+        if (getAirBoundingBox(blockToBePlaced).overlaps(p.getBoundingBox())) {
+            addToVoid(itemClicked, e);
+            return;
+        }
+
+        if (FormedVoid.getAmount(itemClicked) <= 0) {
+            p.sendMessage("Void is empty!");
+            return;
+        }
+
+        blockToBePlaced.setType(itemClicked.getType());
+        FormedVoid.updateVoid(itemClicked, amount - 1);
+    }
+
+    private static BoundingBox getAirBoundingBox(Block block) {
+        if (block == null) {
+            throw new IllegalArgumentException("Block parameter in getAirBoundingBox cannot be null!");
+        }
+        int posX = block.getX();
+        int posY = block.getY();
+        int posZ = block.getZ();
+
+        return new BoundingBox(posX, posY, posZ, posX + 1, posY + 1, posZ + 1);
+    }
+
 }

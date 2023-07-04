@@ -13,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Objects;
@@ -45,6 +46,7 @@ public class FormVoidMenuHandler implements Listener {
 
         if (e.getSlot() == 22 && e.getClickedInventory().getType() == InventoryType.CHEST) {
             e.setCancelled(true);
+            if (e.getCursor().getItemMeta() instanceof PotionMeta) return;
             e.getInventory().setItem(22, new ItemStack(e.getCursor().getType(), 1));
         }
 
@@ -79,6 +81,7 @@ public class FormVoidMenuHandler implements Listener {
     private void FormVoid(InventoryClickEvent e) {
         Player p = (Player) e.getWhoClicked();
         Material m = e.getInventory().getItem(22).getType();//Slot 22 is the center slot in the GUI
+
 
         p.getInventory().addItem(FormedVoid.createVoid(m, 0));
         DetectUnformedVoidIndex(e);

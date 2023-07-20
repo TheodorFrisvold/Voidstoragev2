@@ -27,6 +27,8 @@ public final class VoidStorage extends JavaPlugin {
         new FormVoidMenuHandler(this, keyCache);
         new RightClickUnformedVoid(this, keyCache);
         new ClickWithVoid(this, keyCache);
+//        new PlaceWithVoid(this, keyCache);
+//        new UseItemInVoid(this, keyCache);
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "VoidStorage enabled.");
     }
 
@@ -36,3 +38,7 @@ public final class VoidStorage extends JavaPlugin {
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "VoidStorage enabled.");
     }
 }
+
+//TODO: Add support for throwables, like eggs, snowballs and ender pearls.
+//Potential: Add support for eating food out of voids?
+//TODO: Add toggle for items to go directly into voids when mined rather than forcing the players to insert items themselves.

@@ -34,7 +34,7 @@ public class UseItemInVoid implements Listener {
         ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
         if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
+        e.getPlayer().sendMessage("UseItemInVoid");
 
     }
-
 }

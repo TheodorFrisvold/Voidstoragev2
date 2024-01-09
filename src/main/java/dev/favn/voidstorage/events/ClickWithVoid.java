@@ -35,15 +35,11 @@ public class ClickWithVoid implements Listener {
 
     @EventHandler
     public static void onClickWithVoid(PlayerInteractEvent e) {
+        e.getPlayer().sendMessage("onClickWithVoid");
         ItemStack item = e.getItem();
         if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
-
         Action action = e.getAction();
-        if (action == Action.RIGHT_CLICK_BLOCK) {
-            placeBlock(item, e);
-            return;
-        }
 
         if (action == Action.LEFT_CLICK_AIR ||
                 action == Action.LEFT_CLICK_BLOCK) {
@@ -114,35 +110,35 @@ public class ClickWithVoid implements Listener {
         FormedVoid.updateVoid(storage, newAmount);
     }
 
-    private static void placeBlock(ItemStack itemClicked, PlayerInteractEvent e) {
-        e.setCancelled(true);
-
-        Player p = e.getPlayer();
-        int amount;
-        int voidAmount = FormedVoid.getAmount(itemClicked);
-        if (voidAmount > 10000 || voidAmount < 0) return;
-        amount = voidAmount;
-
-        Block blockToBePlaced = e.getClickedBlock().getRelative(e.getBlockFace());
-
-        if (blockToBePlaced.getType() != Material.AIR) {
-            addToVoid(itemClicked, e);
-            return;
-        }
-
-        if (getAirBoundingBox(blockToBePlaced).overlaps(p.getBoundingBox())) {
-            addToVoid(itemClicked, e);
-            return;
-        }
-
-        if (FormedVoid.getAmount(itemClicked) <= 0) {
-            p.sendMessage("Void is empty!");
-            return;
-        }
-
-        blockToBePlaced.setType(itemClicked.getType());
-        FormedVoid.updateVoid(itemClicked, amount - 1);
-    }
+//    private static void placeBlock(ItemStack itemClicked, PlayerInteractEvent e) {
+//        e.setCancelled(true);
+//
+//        Player p = e.getPlayer();
+//        int amount;
+//        int voidAmount = FormedVoid.getAmount(itemClicked);
+//        if (voidAmount > 10000 || voidAmount < 0) return;
+//        amount = voidAmount;
+//
+//        Block blockToBePlaced = e.getClickedBlock().getRelative(e.getBlockFace());
+//
+//        if (blockToBePlaced.getType() != Material.AIR) {
+//            addToVoid(itemClicked, e);
+//            return;
+//        }
+//
+//        if (getAirBoundingBox(blockToBePlaced).overlaps(p.getBoundingBox())) {
+//            addToVoid(itemClicked, e);
+//            return;
+//        }
+//
+//        if (FormedVoid.getAmount(itemClicked) <= 0) {
+//            p.sendMessage("Void is empty!");
+//            return;
+//        }
+//
+//        blockToBePlaced.setType(itemClicked.getType());
+//        FormedVoid.updateVoid(itemClicked, amount - 1);
+//    }
 
     private static BoundingBox getAirBoundingBox(Block block) {
         if (block == null) {

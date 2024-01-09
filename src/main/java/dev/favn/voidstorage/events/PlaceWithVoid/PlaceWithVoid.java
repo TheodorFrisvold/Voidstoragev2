@@ -1,12 +1,15 @@
-package dev.favn.voidstorage.events;
+package dev.favn.voidstorage.events.PlaceWithVoid;
 
 import dev.favn.voidstorage.VoidStorage;
 import dev.favn.voidstorage.itemfactory.FormedVoid;
 import dev.favn.voidstorage.utility.KeyCache;
+import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockFertilizeEvent;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
@@ -27,10 +30,11 @@ public class PlaceWithVoid implements Listener {
         amountKey = _keyCache.getKey("formedvoid_amount");
         maxKey = _keyCache.getKey("formedvoid_max");
         this._plugin.getServer().getPluginManager().registerEvents(this, this._plugin);
+        _plugin.getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Registered PlaceWithVoid class properly");
     }
 
     @EventHandler
-    public static void onBlockPlaceWithVoid(BlockPlaceEvent e) {
+    public void onBlockPlaceWithVoid(BlockPlaceEvent e) {
         ItemStack item = e.getItemInHand();
         if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
@@ -38,27 +42,65 @@ public class PlaceWithVoid implements Listener {
     }
 
     @EventHandler
-    public static void onBlockMultiPlaceWithVoid(BlockMultiPlaceEvent e) {
+    public void onBlockMultiPlaceWithVoid(BlockMultiPlaceEvent e) {
+        e.getPlayer().sendMessage("MultiPlace Event");
         ItemStack item = e.getItemInHand();
         if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
         placeMultiBlock(item, e);
-    }
-
-
-
-    private static void placeMultiBlock(ItemStack item, BlockMultiPlaceEvent e) {
-        e.setCancelled(true);
 
     }
-
-    private static void placeBlock(ItemStack storage, BlockPlaceEvent e){
+    @EventHandler
+    public void onFertilizeEvent(BlockFertilizeEvent e) {
         e.setCancelled(true);
         Player p = e.getPlayer();
+        ItemStack item = p.getItemInUse();
+        if (item == null) return;
+        if (!FormedVoid.isItemVoid(item)) return;
+
+        applyBoneMealFromVoid(item, e);
     }
 
-    private static void applyBoneMealFromVoid(ItemStack storage, BlockPlaceEvent e) {
+
+
+    private void placeMultiBlock(ItemStack item, BlockMultiPlaceEvent e) {
         e.setCancelled(true);
+        e.getPlayer().sendMessage("Cancelled BlockMultiPlaceEvent");
+    }
+
+    private void placeBlock(ItemStack storage, BlockPlaceEvent e){
+        e.setCancelled(true);
+        Player p = e.getPlayer();
+        p.sendMessage("placeBlock");
+        int amount = FormedVoid.getAmount(storage);
+        if (amount > 10000 || amount < 0) {
+            _plugin.getServer().getConsoleSender().sendMessage(ChatColor.RED + "Player " +
+                    e.getPlayer().getDisplayName() +
+                    " has an ItemVoid with a value out of void limits." + " Amount value is: " + amount);
+            return;
+        }
+
+        Block blockPlaced = e.getBlockPlaced();
+        if (FormedVoid.getAmount(storage) <= 0){
+            p.sendMessage("Void is empty!");
+            return;
+        }
+        blockPlaced.setType(storage.getType());
+        FormedVoid.updateVoid(storage, amount - 1);
+    }
+
+    private void applyBoneMealFromVoid(ItemStack storage, BlockFertilizeEvent e) {
+        e.setCancelled(true);
+        Player p = e.getPlayer();
+        p.sendMessage("Fertilize event cancelled");
+        Block block = e.getBlock();
+        int amount = FormedVoid.getAmount(storage);
+        if (amount > 10000 || amount < 0) return;
+        e.getBlock().applyBoneMeal(block.getFace(block));
+
+        p.sendMessage("Tried to place bonemeal");
+
+        //seems to work fine but it will also run the code in "ClickWithVoid" to add items to the void itself, figure out how to avoid this when actually applying bonemeal
     }
 
 //    private static void oldPlaceBlock(ItemStack itemClicked, BlockPlaceEvent e) {

@@ -1,8 +1,9 @@
 package dev.favn.voidstorage;
 
 import dev.favn.voidstorage.events.ClickWithVoid;
-import dev.favn.voidstorage.events.PlaceWithVoid.PlaceWithVoid;
+import dev.favn.voidstorage.events.PlaceWithVoid;
 import dev.favn.voidstorage.events.RightClickUnformedVoid;
+import dev.favn.voidstorage.events.UseItemInVoid;
 import dev.favn.voidstorage.menus.FormVoidMenuHandler;
 import dev.favn.voidstorage.recipes.UnformedVoidStorage;
 import dev.favn.voidstorage.utility.KeyCache;
@@ -29,7 +30,7 @@ public final class VoidStorage extends JavaPlugin {
         new RightClickUnformedVoid(this, keyCache);
         new PlaceWithVoid(this, keyCache);
         new ClickWithVoid(this, keyCache);
-//        new UseItemInVoid(this, keyCache);
+        new UseItemInVoid(this, keyCache);
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "VoidStorage enabled.");
     }
 

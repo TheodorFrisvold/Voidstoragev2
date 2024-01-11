@@ -44,17 +44,16 @@ public class ClickWithVoid implements Listener {
         if (action == Action.LEFT_CLICK_AIR ||
                 action == Action.LEFT_CLICK_BLOCK) {
             removeFromVoid(item, e);
-            return;
         }
         if (action == Action.RIGHT_CLICK_AIR) {
             addToVoid(item, e);
-            return;
         }
     }
 
     private static void addToVoid(ItemStack storage, PlayerInteractEvent e) {
         e.setCancelled(true);
         Player p = e.getPlayer();
+        p.sendMessage("Cancelled event in addToVoid method");
 
         int storedAmount = storage.getItemMeta().getPersistentDataContainer().get(amountKey, PersistentDataType.INTEGER);
         int depositedAmount = 0;

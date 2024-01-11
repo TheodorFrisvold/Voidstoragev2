@@ -1,11 +1,12 @@
-package dev.favn.voidstorage.events.PlaceWithVoid;
+package dev.favn.voidstorage.events;
 
 import dev.favn.voidstorage.VoidStorage;
 import dev.favn.voidstorage.itemfactory.FormedVoid;
 import dev.favn.voidstorage.utility.KeyCache;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,6 +14,8 @@ import org.bukkit.event.block.BlockFertilizeEvent;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
 
 public class PlaceWithVoid implements Listener {
 
@@ -36,6 +39,7 @@ public class PlaceWithVoid implements Listener {
     @EventHandler
     public void onBlockPlaceWithVoid(BlockPlaceEvent e) {
         ItemStack item = e.getItemInHand();
+        e.getPlayer().sendMessage("onBlockPlaceWithVoid event");
         if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
         placeBlock(item, e);
@@ -52,55 +56,88 @@ public class PlaceWithVoid implements Listener {
     }
     @EventHandler
     public void onFertilizeEvent(BlockFertilizeEvent e) {
-        e.setCancelled(true);
         Player p = e.getPlayer();
-        ItemStack item = p.getItemInUse();
-        if (item == null) return;
-        if (!FormedVoid.isItemVoid(item)) return;
+        if (p == null) return;
+        ItemStack mainHand = e.getPlayer().getInventory().getItemInMainHand();
+        ItemStack offHand = e.getPlayer().getInventory().getItemInOffHand();
+        ItemStack item = (mainHand.getType() == Material.BONE_MEAL) ? mainHand : offHand;
 
+        p.sendMessage("After is null?");
+        if (!FormedVoid.isItemVoid(item)) return;
+        p.sendMessage("After is void?");
         applyBoneMealFromVoid(item, e);
+        e.setCancelled(true);
     }
+
+//    @EventHandler
+//    public void onStructureGrowEvent(StructureGrowEvent e) {
+//        Player p = e.getPlayer();
+//        p.sendMessage("onStructureGrowEvent");
+//        _plugin.getServer().getConsoleSender().sendMessage("onStructureGrowEvent");
+//        e.setCancelled(true);
+//    }
+
+
+
+
+//    @EventHandler
+//    public void onPlayerItemConsumeEvent(PlayerItemConsumeEvent e) {
+//        Player p = e.getPlayer();
+//        p.sendMessage("onPlayerItemConsumeEvent");
+//        ItemStack item = p.getItemInUse();
+//        p.sendMessage(item.toString());
+//        if (item == null) return;
+//        p.sendMessage("After \"is null\" check");
+//        if (!FormedVoid.isItemVoid(item)) return;
+//        p.sendMessage("After \"is void\" check");
+//        e.setCancelled(true);
+//        p.sendMessage("After event cancelled");
+//
+//    }
+
+
 
 
 
     private void placeMultiBlock(ItemStack item, BlockMultiPlaceEvent e) {
-        e.setCancelled(true);
-        e.getPlayer().sendMessage("Cancelled BlockMultiPlaceEvent");
+
     }
 
     private void placeBlock(ItemStack storage, BlockPlaceEvent e){
-        e.setCancelled(true);
         Player p = e.getPlayer();
         p.sendMessage("placeBlock");
         int amount = FormedVoid.getAmount(storage);
-        if (amount > 10000 || amount < 0) {
-            _plugin.getServer().getConsoleSender().sendMessage(ChatColor.RED + "Player " +
-                    e.getPlayer().getDisplayName() +
-                    " has an ItemVoid with a value out of void limits." + " Amount value is: " + amount);
-            return;
-        }
+        if (amount > 10000 || amount < 0) return;
 
-        Block blockPlaced = e.getBlockPlaced();
         if (FormedVoid.getAmount(storage) <= 0){
             p.sendMessage("Void is empty!");
             return;
         }
-        blockPlaced.setType(storage.getType());
+
+//        Block block = e.getBlockPlaced().getLocation().getBlock();
+//        block.setType(storage.getType());
         FormedVoid.updateVoid(storage, amount - 1);
     }
 
     private void applyBoneMealFromVoid(ItemStack storage, BlockFertilizeEvent e) {
-        e.setCancelled(true);
         Player p = e.getPlayer();
-        p.sendMessage("Fertilize event cancelled");
-        Block block = e.getBlock();
+        p.sendMessage("applyBoneMealFromVoid");
         int amount = FormedVoid.getAmount(storage);
         if (amount > 10000 || amount < 0) return;
-        e.getBlock().applyBoneMeal(block.getFace(block));
 
-        p.sendMessage("Tried to place bonemeal");
+        List<BlockState> blocksChanged = e.getBlocks();
+        for (BlockState block : blocksChanged) {
+            p.sendMessage(block.toString());
+        }
 
-        //seems to work fine but it will also run the code in "ClickWithVoid" to add items to the void itself, figure out how to avoid this when actually applying bonemeal
+        if (FormedVoid.getAmount(storage) <= 0){
+            p.sendMessage("Void is empty!");
+            return;
+        }
+
+        FormedVoid.updateVoid(storage, amount - 1);
+
+
     }
 
 //    private static void oldPlaceBlock(ItemStack itemClicked, BlockPlaceEvent e) {

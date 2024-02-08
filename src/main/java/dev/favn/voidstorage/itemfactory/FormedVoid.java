@@ -56,6 +56,7 @@ public class FormedVoid {
         voidStorage.setItemMeta(meta);
     }
 
+
     private static List<String> createLore(Material material, int amount, ItemMeta meta) {
         String itemName = VoidUtils.displayNameFromMaterial(material);
         meta.setDisplayName(ChatColor.RESET + itemName + "Void");

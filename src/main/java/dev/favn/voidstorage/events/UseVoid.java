@@ -6,7 +6,7 @@ import dev.favn.voidstorage.utility.KeyCache;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.BlockState;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,9 +15,7 @@ import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
-
-public class PlaceWithVoid implements Listener {
+public class UseVoid implements Listener {
 
     private static VoidStorage _plugin;
     private static KeyCache _keyCache;
@@ -26,7 +24,7 @@ public class PlaceWithVoid implements Listener {
     private static NamespacedKey maxKey;
 
 
-    public PlaceWithVoid(VoidStorage plugin, KeyCache keyCache){
+    public UseVoid(VoidStorage plugin, KeyCache keyCache){
         _plugin = plugin;
         _keyCache = keyCache;
         key = _keyCache.getKey("formedvoid_type");
@@ -42,6 +40,11 @@ public class PlaceWithVoid implements Listener {
         e.getPlayer().sendMessage("onBlockPlaceWithVoid event");
         if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
+        if (item.getAmount()>1) {
+            e.getPlayer().sendMessage("You can't use voids that are stacked");
+            e.setCancelled(true);
+            return;
+        }
         placeBlock(item, e);
     }
 
@@ -51,6 +54,12 @@ public class PlaceWithVoid implements Listener {
         ItemStack item = e.getItemInHand();
         if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
+        if (item.getAmount()>1) {
+            e.getPlayer().sendMessage("You can't use voids that are stacked");
+            e.setCancelled(true);
+            return;
+        }
+
         placeMultiBlock(item, e);
 
     }
@@ -65,35 +74,14 @@ public class PlaceWithVoid implements Listener {
         p.sendMessage("After is null?");
         if (!FormedVoid.isItemVoid(item)) return;
         p.sendMessage("After is void?");
+        if (item.getAmount()>1) {
+            e.getPlayer().sendMessage("You can't use voids that are stacked");
+            e.setCancelled(true);
+            return;
+
+        }
         applyBoneMealFromVoid(item, e);
-        e.setCancelled(true);
     }
-
-//    @EventHandler
-//    public void onStructureGrowEvent(StructureGrowEvent e) {
-//        Player p = e.getPlayer();
-//        p.sendMessage("onStructureGrowEvent");
-//        _plugin.getServer().getConsoleSender().sendMessage("onStructureGrowEvent");
-//        e.setCancelled(true);
-//    }
-
-
-
-
-//    @EventHandler
-//    public void onPlayerItemConsumeEvent(PlayerItemConsumeEvent e) {
-//        Player p = e.getPlayer();
-//        p.sendMessage("onPlayerItemConsumeEvent");
-//        ItemStack item = p.getItemInUse();
-//        p.sendMessage(item.toString());
-//        if (item == null) return;
-//        p.sendMessage("After \"is null\" check");
-//        if (!FormedVoid.isItemVoid(item)) return;
-//        p.sendMessage("After \"is void\" check");
-//        e.setCancelled(true);
-//        p.sendMessage("After event cancelled");
-//
-//    }
 
 
 
@@ -114,8 +102,8 @@ public class PlaceWithVoid implements Listener {
             return;
         }
 
-//        Block block = e.getBlockPlaced().getLocation().getBlock();
-//        block.setType(storage.getType());
+        Block block = e.getBlockPlaced().getLocation().getBlock();
+        block.setType(storage.getType());
         FormedVoid.updateVoid(storage, amount - 1);
     }
 
@@ -124,12 +112,6 @@ public class PlaceWithVoid implements Listener {
         p.sendMessage("applyBoneMealFromVoid");
         int amount = FormedVoid.getAmount(storage);
         if (amount > 10000 || amount < 0) return;
-
-        List<BlockState> blocksChanged = e.getBlocks();
-        for (BlockState block : blocksChanged) {
-            p.sendMessage(block.toString());
-        }
-
         if (FormedVoid.getAmount(storage) <= 0){
             p.sendMessage("Void is empty!");
             return;
@@ -139,34 +121,4 @@ public class PlaceWithVoid implements Listener {
 
 
     }
-
-//    private static void oldPlaceBlock(ItemStack itemClicked, BlockPlaceEvent e) {
-//        e.setCancelled(true);
-//
-//        Player p = e.getPlayer();
-//        int amount;
-//        int voidAmount = FormedVoid.getAmount(itemClicked);
-//        if (voidAmount > 10000 || voidAmount < 0) return;
-//        amount = voidAmount;
-//
-//        Block blockToBePlaced = e.getClickedBlock().getRelative(e.getBlockFace());
-//
-//        if (blockToBePlaced.getType() != Material.AIR) {
-//            ClickWithVoid.addToVoid(itemClicked, e);
-//            return;
-//        }
-//
-//        if (getAirBoundingBox(blockToBePlaced).overlaps(p.getBoundingBox())) {
-//            addToVoid(itemClicked, e);
-//            return;
-//        }
-//
-//        if (FormedVoid.getAmount(itemClicked) <= 0) {
-//            p.sendMessage("Void is empty!");
-//            return;
-//        }
-//
-//        blockToBePlaced.setType(itemClicked.getType());
-//        FormedVoid.updateVoid(itemClicked, amount - 1);
-//    }
 }

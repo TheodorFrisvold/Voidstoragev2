@@ -5,7 +5,6 @@ import dev.favn.voidstorage.itemfactory.FormedVoid;
 import dev.favn.voidstorage.utility.KeyCache;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,7 +12,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.BoundingBox;
 
 public class ClickWithVoid implements Listener {
 
@@ -39,6 +37,10 @@ public class ClickWithVoid implements Listener {
         ItemStack item = e.getItem();
         if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
+        if(item.getAmount() > 1) {
+            e.getPlayer().sendMessage("Can't use stacked voids!");
+            return;
+        }
         Action action = e.getAction();
 
         if (action == Action.LEFT_CLICK_AIR ||
@@ -107,47 +109,6 @@ public class ClickWithVoid implements Listener {
             continue;
         }
         FormedVoid.updateVoid(storage, newAmount);
-    }
-
-//    private static void placeBlock(ItemStack itemClicked, PlayerInteractEvent e) {
-//        e.setCancelled(true);
-//
-//        Player p = e.getPlayer();
-//        int amount;
-//        int voidAmount = FormedVoid.getAmount(itemClicked);
-//        if (voidAmount > 10000 || voidAmount < 0) return;
-//        amount = voidAmount;
-//
-//        Block blockToBePlaced = e.getClickedBlock().getRelative(e.getBlockFace());
-//
-//        if (blockToBePlaced.getType() != Material.AIR) {
-//            addToVoid(itemClicked, e);
-//            return;
-//        }
-//
-//        if (getAirBoundingBox(blockToBePlaced).overlaps(p.getBoundingBox())) {
-//            addToVoid(itemClicked, e);
-//            return;
-//        }
-//
-//        if (FormedVoid.getAmount(itemClicked) <= 0) {
-//            p.sendMessage("Void is empty!");
-//            return;
-//        }
-//
-//        blockToBePlaced.setType(itemClicked.getType());
-//        FormedVoid.updateVoid(itemClicked, amount - 1);
-//    }
-
-    private static BoundingBox getAirBoundingBox(Block block) {
-        if (block == null) {
-            throw new IllegalArgumentException("Block parameter in getAirBoundingBox cannot be null!");
-        }
-        int posX = block.getX();
-        int posY = block.getY();
-        int posZ = block.getZ();
-
-        return new BoundingBox(posX, posY, posZ, posX + 1, posY + 1, posZ + 1);
     }
 
 }

@@ -6,12 +6,10 @@ import dev.favn.voidstorage.utility.KeyCache;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockFertilizeEvent;
-import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -49,24 +47,10 @@ public class UseVoid implements Listener {
     }
 
     @EventHandler
-    public void onBlockMultiPlaceWithVoid(BlockMultiPlaceEvent e) {
-        e.getPlayer().sendMessage("MultiPlace Event");
-        ItemStack item = e.getItemInHand();
-        if (item == null) return;
-        if (!FormedVoid.isItemVoid(item)) return;
-        if (item.getAmount()>1) {
-            e.getPlayer().sendMessage("You can't use voids that are stacked");
-            e.setCancelled(true);
-            return;
-        }
-
-        placeMultiBlock(item, e);
-
-    }
-    @EventHandler
     public void onFertilizeEvent(BlockFertilizeEvent e) {
         Player p = e.getPlayer();
         if (p == null) return;
+
         ItemStack mainHand = e.getPlayer().getInventory().getItemInMainHand();
         ItemStack offHand = e.getPlayer().getInventory().getItemInOffHand();
         ItemStack item = (mainHand.getType() == Material.BONE_MEAL) ? mainHand : offHand;
@@ -83,27 +67,18 @@ public class UseVoid implements Listener {
         applyBoneMealFromVoid(item, e);
     }
 
-
-
-
-
-    private void placeMultiBlock(ItemStack item, BlockMultiPlaceEvent e) {
-
-    }
-
     private void placeBlock(ItemStack storage, BlockPlaceEvent e){
         Player p = e.getPlayer();
         p.sendMessage("placeBlock");
         int amount = FormedVoid.getAmount(storage);
         if (amount > 10000 || amount < 0) return;
 
-        if (FormedVoid.getAmount(storage) <= 0){
+        if (amount == 0){
             p.sendMessage("Void is empty!");
+            e.setCancelled(true);
             return;
         }
 
-        Block block = e.getBlockPlaced().getLocation().getBlock();
-        block.setType(storage.getType());
         FormedVoid.updateVoid(storage, amount - 1);
     }
 
@@ -114,11 +89,10 @@ public class UseVoid implements Listener {
         if (amount > 10000 || amount < 0) return;
         if (FormedVoid.getAmount(storage) <= 0){
             p.sendMessage("Void is empty!");
+            e.setCancelled(true);
             return;
         }
 
         FormedVoid.updateVoid(storage, amount - 1);
-
-
     }
 }

@@ -86,6 +86,7 @@ public class FormedVoid {
             if (Objects.equals(itemData, "normal")) return true;
         } catch (NullPointerException exception) {
             VoidStorage.get_plugin().getServer().getConsoleSender().sendMessage(ChatColor.RED + "There was a NullPointerException in isItemVoid method");
+            return false;
         }
         return false;
     }

@@ -2,32 +2,22 @@ package dev.favn.voidstorage.events;
 
 import dev.favn.voidstorage.VoidStorage;
 import dev.favn.voidstorage.itemfactory.FormedVoid;
-import dev.favn.voidstorage.utility.KeyCache;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 
 public class ClickWithVoid implements Listener {
 
     private static VoidStorage _plugin;
-    private static KeyCache _keyCache;
-    private static NamespacedKey key;
-    private static NamespacedKey amountKey;
-    private static NamespacedKey maxKey;
 
 
-    public ClickWithVoid(VoidStorage plugin, KeyCache keyCache) {
+
+    public ClickWithVoid(VoidStorage plugin) {
         _plugin = plugin;
-        _keyCache = keyCache;
-        key = _keyCache.getKey("formedvoid_type");
-        amountKey = _keyCache.getKey("formedvoid_amount");
-        maxKey = _keyCache.getKey("formedvoid_max");
         this._plugin.getServer().getPluginManager().registerEvents(this, this._plugin);
     }
 
@@ -57,7 +47,7 @@ public class ClickWithVoid implements Listener {
         Player p = e.getPlayer();
         p.sendMessage("Cancelled event in addToVoid method");
 
-        int storedAmount = storage.getItemMeta().getPersistentDataContainer().get(amountKey, PersistentDataType.INTEGER);
+        int storedAmount = FormedVoid.getAmount(storage);
         int depositedAmount = 0;
         int total = storedAmount + depositedAmount;
 
@@ -85,7 +75,7 @@ public class ClickWithVoid implements Listener {
     private static void removeFromVoid(ItemStack storage, PlayerInteractEvent e) {
         e.setCancelled(true);
         Player p = e.getPlayer();
-        int storedAmount = storage.getItemMeta().getPersistentDataContainer().get(amountKey, PersistentDataType.INTEGER);
+        int storedAmount = FormedVoid.getAmount(storage);
         int newAmount = storedAmount;
         Material m = storage.getType();
 

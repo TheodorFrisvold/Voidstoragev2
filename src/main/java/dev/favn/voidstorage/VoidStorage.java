@@ -27,15 +27,15 @@ public final class VoidStorage extends JavaPlugin {
         UnformedVoidStorage.init();
         new FormVoidMenuHandler(this, keyCache);
         new RightClickUnformedVoid(this, keyCache);
-        new UseVoid(this, keyCache);
-        new ClickWithVoid(this, keyCache);
+        new UseVoid(this);
+        new ClickWithVoid(this);
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "VoidStorage enabled.");
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "VoidStorage enabled.");
+        getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "VoidStorage disabled.");
     }
 }
 

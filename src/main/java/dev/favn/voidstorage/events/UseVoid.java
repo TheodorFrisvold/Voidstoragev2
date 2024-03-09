@@ -2,7 +2,6 @@ package dev.favn.voidstorage.events;
 
 import dev.favn.voidstorage.VoidStorage;
 import dev.favn.voidstorage.itemfactory.FormedVoid;
-import dev.favn.voidstorage.utility.KeyCache;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -17,7 +16,7 @@ public class UseVoid implements Listener {
     private static VoidStorage _plugin;
 
 
-    public UseVoid(VoidStorage plugin, KeyCache keyCache){
+    public UseVoid(VoidStorage plugin){
         _plugin = plugin;
         this._plugin.getServer().getPluginManager().registerEvents(this, this._plugin);
         _plugin.getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Registered PlaceWithVoid class properly");
@@ -27,7 +26,6 @@ public class UseVoid implements Listener {
     public void onBlockPlaceWithVoid(BlockPlaceEvent e) {
         ItemStack item = e.getItemInHand();
         e.getPlayer().sendMessage("onBlockPlaceWithVoid event");
-        if (item == null) return;
         if (!FormedVoid.isItemVoid(item)) return;
         if (item.getAmount()>1) {
             e.getPlayer().sendMessage("You can't use voids that are stacked");
@@ -40,15 +38,12 @@ public class UseVoid implements Listener {
     @EventHandler
     public void onFertilizeEvent(BlockFertilizeEvent e) {
         Player p = e.getPlayer();
-        if (p == null) return;
+        if (p == null) return;//this could potentially be changed to let bone_meal voids work in dispensers.
 
         ItemStack mainHand = e.getPlayer().getInventory().getItemInMainHand();
         ItemStack offHand = e.getPlayer().getInventory().getItemInOffHand();
         ItemStack item = (mainHand.getType() == Material.BONE_MEAL) ? mainHand : offHand;
-
-        p.sendMessage("After is null?");
         if (!FormedVoid.isItemVoid(item)) return;
-        p.sendMessage("After is void?");
         if (item.getAmount()>1) {
             e.getPlayer().sendMessage("You can't use voids that are stacked");
             e.setCancelled(true);

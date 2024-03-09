@@ -12,13 +12,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class ClickWithVoid implements Listener {
 
-    private static VoidStorage _plugin;
-
-
-
     public ClickWithVoid(VoidStorage plugin) {
-        _plugin = plugin;
-        this._plugin.getServer().getPluginManager().registerEvents(this, this._plugin);
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
@@ -80,7 +75,7 @@ public class ClickWithVoid implements Listener {
         Material m = storage.getType();
 
         for (ItemStack item : p.getInventory().getStorageContents()) {
-            if (!(item == null) || FormedVoid.isItemVoid(item)) continue;
+            if (FormedVoid.isItemVoid(item)) continue;
             if (m.getMaxStackSize() > storedAmount) {
                 p.getInventory().addItem(new ItemStack(m, storedAmount));
                 newAmount = 0;

@@ -2,7 +2,6 @@ package dev.favn.voidstorage.events;
 
 import dev.favn.voidstorage.VoidStorage;
 import dev.favn.voidstorage.itemfactory.FormedVoid;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,19 +12,13 @@ import org.bukkit.inventory.ItemStack;
 
 public class UseVoid implements Listener {
 
-    private static VoidStorage _plugin;
-
-
     public UseVoid(VoidStorage plugin){
-        _plugin = plugin;
-        this._plugin.getServer().getPluginManager().registerEvents(this, this._plugin);
-        _plugin.getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Registered PlaceWithVoid class properly");
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     @EventHandler
     public void onBlockPlaceWithVoid(BlockPlaceEvent e) {
         ItemStack item = e.getItemInHand();
-        e.getPlayer().sendMessage("onBlockPlaceWithVoid event");
         if (!FormedVoid.isItemVoid(item)) return;
         if (item.getAmount()>1) {
             e.getPlayer().sendMessage("You can't use voids that are stacked");
@@ -50,12 +43,11 @@ public class UseVoid implements Listener {
             return;
 
         }
-        applyBoneMealFromVoid(item, e);
+        applyBoneMealFromVoid(item, e, p);
     }
 
     private void placeBlock(ItemStack storage, BlockPlaceEvent e){
         Player p = e.getPlayer();
-        p.sendMessage("placeBlock");
         int amount = FormedVoid.getAmount(storage);
         if (amount > 10000 || amount < 0) return;
 
@@ -68,9 +60,7 @@ public class UseVoid implements Listener {
         FormedVoid.updateVoid(storage, amount - 1);
     }
 
-    private void applyBoneMealFromVoid(ItemStack storage, BlockFertilizeEvent e) {
-        Player p = e.getPlayer();
-        p.sendMessage("applyBoneMealFromVoid");
+    private void applyBoneMealFromVoid(ItemStack storage, BlockFertilizeEvent e, Player p) {
         int amount = FormedVoid.getAmount(storage);
         if (amount > 10000 || amount < 0) return;
         if (FormedVoid.getAmount(storage) <= 0){
@@ -81,4 +71,5 @@ public class UseVoid implements Listener {
 
         FormedVoid.updateVoid(storage, amount - 1);
     }
+
 }
